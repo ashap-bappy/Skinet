@@ -18,6 +18,7 @@ namespace API
                 opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             var app = builder.Build();
 
@@ -30,6 +31,8 @@ namespace API
                 using var scope = app.Services.CreateScope();
                 var services = scope.ServiceProvider;
                 var context = services.GetRequiredService<StoreContext>();
+
+                // Automatically applies any pending migrations to the database
                 await context.Database.MigrateAsync();
                 await StoreContextSeed.SeedAsync(context);
             }

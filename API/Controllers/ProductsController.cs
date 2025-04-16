@@ -1,25 +1,26 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
-using Infrastructure.Data;
+using Core.Specifications;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductsController(IProductRepository productRepository) : ControllerBase
+    public class ProductsController(IGenericRepository<Product> repo) : ControllerBase
     {
         [HttpGet]
         public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts(string? brand, string? type, string? sort)
         {
-            return Ok(await productRepository.GetProductsAsync(brand, type, sort));
+            var spec = new ProductSpecification(brand, type, sort);
+            var products = await repo.ListWithSpecAsync(spec);
+            return Ok(products);
         }
 
         [HttpGet("{id:int}")] // api/products/2
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            var product = await productRepository.GetProductByIdAsync(id);
+            var product = await repo.GetByIdAsync(id);
             if (product == null)
             {
                 return NotFound();
@@ -30,9 +31,11 @@ namespace API.Controllers
         [HttpPost]
         public async Task<ActionResult<Product>> CreateProduct(Product product)
         {
-            productRepository.AddProduct(product);
-            if (await productRepository.SaveChangesAsync())
+            repo.Add(product);
+            if (await repo.SaveAllAsync())
             {
+                //This is typically used after a resource has been successfully created,
+                //and it provides the URI of the newly created resource in the response's Location header
                 return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
             }
             return BadRequest("Failed to create product");
@@ -42,13 +45,13 @@ namespace API.Controllers
         [HttpPut("{id:int}")]
         public async Task<ActionResult<Product>> UpdateProduct(int id, Product product)
         {
-            if (id != product.Id || productRepository.ProductExists(id) == false)
+            if (id != product.Id || repo.Exists(id) == false)
             {
                 return BadRequest();
             }
-            productRepository.UpdateProduct(product);
+            repo.Update(product);
 
-            if (await productRepository.SaveChangesAsync())
+            if (await repo.SaveAllAsync())
             {
                 return NoContent();
             }
@@ -58,14 +61,14 @@ namespace API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Product>> DeleteProduct(int id)
         {
-            var product = await productRepository.GetProductByIdAsync(id);
+            var product = await repo.GetByIdAsync(id);
             if (product == null)
             {
                 return NotFound();
             }
-            productRepository.DeleteProduct(product);
+            repo.Remove(product);
 
-            if (await productRepository.SaveChangesAsync())
+            if (await repo.SaveAllAsync())
             {
                 return NoContent();
             }
@@ -73,15 +76,19 @@ namespace API.Controllers
         }
 
         [HttpGet("brands")]
-        public async Task<ActionResult<IReadOnlyList<string>>> GetBrands()
+        public ActionResult<IReadOnlyList<string>> GetBrands()
         {
-            return Ok(await productRepository.GetBrandsAsync());
+            var spec = new BrandListSpecification();
+            var brands = repo.GetEntitiesWithSpecAsync(spec);
+            return Ok();
         }
 
         [HttpGet("types")]
         public async Task<ActionResult<IReadOnlyList<string>>> GetTypes()
         {
-            return Ok(await productRepository.GetTypesAsync());
+            var spec = new TypeListSpecification();
+            var types = await repo.GetEntitiesWithSpecAsync(spec);
+            return Ok(types);
         }
     }
 }
