@@ -41,9 +41,9 @@ namespace Infrastructure.Data
             return await ApplySpecification(spec).ToListAsync();
         }
 
-        public Task<IReadOnlyList<TResult>> ListWithSpecAsync<TResult>(ISpecification<T, TResult> spec)
+        public async Task<IReadOnlyList<TResult>> ListWithSpecAsync<TResult>(ISpecification<T, TResult> spec)
         {
-            throw new NotImplementedException();
+            return await ApplySpecification(spec).ToListAsync();
         }
 
         public void Remove(T entity)
@@ -68,7 +68,7 @@ namespace Infrastructure.Data
 
         private IQueryable<TResult> ApplySpecification<TResult>(ISpecification<T, TResult> spec)
         {
-            return SpecificationEvaluator<T>.GetQuery(context.Set<T>().AsQueryable(), spec);
+            return SpecificationEvaluator<T>.GetQuery<TResult>(context.Set<T>().AsQueryable(), spec);
         }
     }
 }

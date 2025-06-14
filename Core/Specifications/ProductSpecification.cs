@@ -6,9 +6,9 @@ namespace Core.Specifications
 {
     public class ProductSpecification : BaseSpecification<Product>
     {
-        public ProductSpecification(string? brand, string? type, string? sort) : base(GetExpression(brand, type))
+        public ProductSpecification(ProductSpecParams specParams) : base(GetExpression(specParams.Brands, specParams.Types))
         {
-            switch (sort)
+            switch (specParams.Sort)
             {
                 case "priceAsc":
                     AddOrderBy(p => p.Price);
@@ -22,9 +22,9 @@ namespace Core.Specifications
             }
         }
 
-        private static Expression<Func<Product, bool>> GetExpression(string? brand, string? type)
+        private static Expression<Func<Product, bool>> GetExpression(List<string> brands, List<string> types)
         {
-            return x => (string.IsNullOrWhiteSpace(brand) || x.Brand == brand) && (string.IsNullOrWhiteSpace(type) || x.Type == type);
+            return x => (brands.Count == 0 || brands.Contains(x.Brand)) && (types.Count == 0 || types.Contains(x.Type));
         }
     }
 }
