@@ -41,7 +41,6 @@ namespace API
                 Console.WriteLine(ex);
                 throw;
             }
-
             app.Run();
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Core.Entities;
 
 namespace Core.Interfaces
 {
@@ -11,6 +12,7 @@ namespace Core.Interfaces
         int Skip {  get; }
         int Take { get; }
         bool IsPagingEnabled { get; }
+        IQueryable<T> ApplyCriteria(IQueryable<T> query);
     }
 
     public interface ISpecification<T, TResult> : ISpecification<T>

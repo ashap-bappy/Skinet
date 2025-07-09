@@ -16,6 +16,13 @@ namespace Infrastructure.Data
             return context.Set<T>().Any(e => e.Id == id);
         }
 
+        public async Task<int> CountAsync(ISpecification<T> spec)
+        {
+            var query = context.Set<T>().AsQueryable();
+            query = spec.ApplyCriteria(query);
+            return await query.CountAsync();
+        }
+
         public async Task<T?> GetByIdAsync(int id)
         {
             return await context.Set<T>().FindAsync(id);

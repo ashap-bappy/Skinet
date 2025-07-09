@@ -66,7 +66,7 @@ namespace Infrastructure.Data
 
             if (spec.IsPagingEnabled)
             {
-                selectQuery = selectQuery?.Skip(spec.Skip).Take(spec.Skip);
+                selectQuery = selectQuery?.Skip(spec.Skip).Take(spec.Take);
             }
 
             return selectQuery ?? query.Cast<TResult>();
